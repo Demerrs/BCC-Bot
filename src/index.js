@@ -2,8 +2,25 @@ require('dotenv').config();
 const {Client, Events, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, SlashCommandBuilder} = require('discord.js');
 const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]});
 
-client.on(Events.ClientReady, (x) => {
+client.on(Events.ClientReady, async (x) => {
     client.user.setActivity("I'm soulless");
+
+    // Try catch to remove old unexisted commands
+    try {
+        // Fetch the current list of global commands
+        const existingCommands = await client.application.commands.fetch();
+
+        // Delete each existing command
+        existingCommands.forEach(async (command) => {
+            await command.delete();
+        });
+
+        console.log('Deleted old commands.');
+
+    } catch (error) {
+        console.error('Error fetching/deleting commands:', error);
+    }
+    //Creating commands
 
     const embed = new SlashCommandBuilder()
     .setName('embed')
