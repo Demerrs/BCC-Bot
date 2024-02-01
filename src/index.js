@@ -1,9 +1,15 @@
+const fs = require('fs');
 require('dotenv').config();
 const {Client, Events, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, SlashCommandBuilder} = require('discord.js');
 const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]});
 
+let monitoredChannels = [];
+const monitoredChannelsFilePath = process.env.MONITOR_CHANNELS;
+
+
 client.on(Events.ClientReady, async (x) => {
     client.user.setActivity("I'm soulless");
+    monitoredChannels = loadMonitoredChannelsFromFile(monitoredChannelsFilePath);
 
     // Try catch to remove old unexisted commands
     try {
@@ -80,11 +86,35 @@ client.on(Events.ClientReady, async (x) => {
 
     client.application.commands.create(say);
 
+    const moderation = new SlashCommandBuilder()
+    .setName('moderation')
+    .setDescription('Setup the moderation channels')
+    .addChannelOption( option =>
+        option
+        .setName('set_channel')
+        .setDescription('Channel')
+        .setRequired(true)
+    )
+
+    client.application.commands.create(moderation);
+
+    const logs = new SlashCommandBuilder()
+    .setName('logs')
+    .setDescription('Setup the log channel')
+    .addChannelOption( option =>
+        option
+        .setName('set_channel')
+        .setDescription('Channel')
+        .setRequired(true)
+    )
+
+    client.application.commands.create(logs);
+
 
     console.log(`${x.user.tag} is ready!`);
 })
 
-client.on("interactionCreate", (interaction) =>{
+client.on("interactionCreate", async (interaction) =>{
     const currentUser = interaction.user.tag;
     const currentUserImage = interaction.user.displayAvatarURL({ format: "png", dynamic: true });
     const channelAvatar = interaction.guild ? interaction.guild.iconURL({ format: "png", dynamic: true }) : null;
@@ -115,7 +145,7 @@ client.on("interactionCreate", (interaction) =>{
         const colorOption = interaction.options.getString('color');
         let color;
 
-        // Validate color input (if provided)
+        // Validate color input (if provided) 
         if (colorOption) {
             if (!/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(colorOption)) {
                 interaction.reply('Invalid color format. Please provide a valid hex color (e.g., #FF0000).');
@@ -184,6 +214,126 @@ client.on("interactionCreate", (interaction) =>{
                 });
         }
     }
+
+    if (interaction.commandName === 'moderation') {
+        const channelToAdd = interaction.options.getChannel('set_channel');
+        if (channelToAdd) {
+            monitoredChannels.push(channelToAdd.id);
+            interaction.reply(`Channel ${channelToAdd.name} added to monitored channels.`);
+
+            // Save monitored channels to file
+            saveMonitoredChannelsToFile(monitoredChannelsFilePath, monitoredChannels);
+        } else {
+            interaction.reply('Please specify a valid channel to add.');
+        }
+    }
+
+    if (interaction.commandName === 'logs') {
+        const channelToAdd = interaction.options.getChannel('set_channel');
+        if (channelToAdd) {
+            monitoredChannels.push(channelToAdd.id);
+            interaction.reply(`Channel ${channelToAdd.name} added to monitored channels.`);
+
+            // Save monitored channels to file
+            saveMonitoredChannelsToFile(monitoredChannelsFilePath, monitoredChannels);
+        } else {
+            interaction.reply('Please specify a valid channel to add.');
+        }
+    }
 })
+
+function loadUncensoredWordsFromFile(filePath) {
+    try {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        // Assuming each line in the file contains one uncensored word
+        const uncensoredWords = fileContent.split('\n').map(word => word.trim());
+        return uncensoredWords;
+    } catch (error) {
+        console.error('Error reading uncensored words file:', error);
+        return [];
+    }
+}
+
+// Specify the path to the file containing uncensored words
+const uncensoredWordsFilePath = process.env.CENSURED_WORDS; // Replace with your file path
+
+// Load uncensored words from the file
+const uncensoredWords = loadUncensoredWordsFromFile(uncensoredWordsFilePath);
+
+function loadMonitoredChannelsFromFile(filePath) {
+    try {
+        // Read the file content if it exists
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+
+        // Assuming each line in the file contains one channel ID
+        const channels = fileContent.split('\n').map(channel => channel.trim());
+        return channels;
+    } catch (error) {
+        // Check if the error is due to the file not existing
+        if (error.code === 'ENOENT') {
+            // If the file doesn't exist, create an empty file
+            fs.writeFileSync(filePath, '', 'utf8');
+            return [];
+        } else {
+            // If there's another error, log it and return an empty array
+            console.error('Error reading monitored channels file:', error);
+            return [];
+        } 
+    }
+}
+
+
+// Function to save monitored channels to file
+function saveMonitoredChannelsToFile(filePath, channels) {
+    try {
+        const channelsString = channels.join('\n');
+        fs.writeFileSync(filePath, channelsString, 'utf8');
+    } catch (error) {
+        console.error('Error saving monitored channels to file:', error);
+    }
+}
+
+
+// ...
+
+client.on("messageCreate", async (message) => {
+    // Check if the message is in a specific channel
+    if (message.author.bot) {
+        return;
+    }
+
+    const specificChannelId = '1201628228041851094'; // Replace with your specific channel ID
+    const logChannelId = '1202622053077885009';
+    if (!monitoredChannels.includes(message.channel.id)) {
+        return; // Ignore messages from other channels
+    }
+
+    // Check for uncensored words
+    const lowercaseContent = message.content.toLowerCase();
+
+    for (const word of uncensoredWords) {
+        if (lowercaseContent.includes(word.toLowerCase())) {
+            try {
+                // Perform action when uncensored word is found, e.g., delete the message
+
+                const logChannel = await client.channels.fetch(logChannelId);
+                await logChannel.send(`---------------------------------\nMessage deleted: ${message.content}\nAuthor: ${message.author.tag}\nChannel: ${message.channel.name}\n---------------------------------`);
+
+                await message.reply('Please refrain from using uncensored words.');
+                console.log(`Message deleted: ${message.content}`);
+                await message.delete();
+                // Optionally, you can also send a warning or reply to the user without referencing the deleted message
+            } catch (error) {
+                console.error('Error handling uncensored word:', error);
+            }
+
+            // Stop further processing since the word is found
+            return;
+        }
+    }
+});
+
+// ...
+
 
 client.login(process.env.TOKEN);
