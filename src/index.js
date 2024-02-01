@@ -25,6 +25,12 @@ client.on(Events.ClientReady, (x) => {
         .setName('set_channel')
         .setDescription('Specify the channel where you want to use message')
         .setRequired(false)
+    )
+    .addStringOption(option =>
+        option
+            .setName('color')
+            .setDescription('Set the color for the embed message (hex format, e.g., #FF0000)')
+            .setRequired(false)
     );
 
     for (let i = 1; i <= 6; i++) {
@@ -39,6 +45,24 @@ client.on(Events.ClientReady, (x) => {
 
     client.application.commands.create(embed);
 
+    const say = new SlashCommandBuilder()
+    .setName('say')
+    .setDescription('Say something from the bot point of view')
+    .addStringOption(option =>
+        option
+        .setName('say_something')
+        .setDescription('text')
+        .setRequired(true)
+        )
+    .addChannelOption(option =>
+            option
+            .setName('set_channel')
+            .setDescription('Specify the channel where you want to use message')
+            .setRequired(false)
+    );
+
+    client.application.commands.create(say);
+
 
     console.log(`${x.user.tag} is ready!`);
 })
@@ -49,18 +73,6 @@ client.on("interactionCreate", (interaction) =>{
     const channelAvatar = interaction.guild ? interaction.guild.iconURL({ format: "png", dynamic: true }) : null;
 
     if(!interaction.isChatInputCommand()) return;
-
-    if(interaction.commandName === 'announce'){
-        const userOption = interaction.options.getUser('user');
-        const userText = interaction.options.getString('text');
-        if(userText && userOption){
-            interaction.reply(`${userText} ${userOption.toString()}!`);
-        }else if(userText){
-            interaction.reply(`${userText}!`);
-        }else{
-            interaction.reply('Enter a valid message!');
-        }
-    }
 
     if(interaction.commandName === 'embed'){
         const userDesc = interaction.options.getString('embeded_message');
@@ -83,10 +95,25 @@ client.on("interactionCreate", (interaction) =>{
             }
         }
 
+        const colorOption = interaction.options.getString('color');
+        let color;
+
+        // Validate color input (if provided)
+        if (colorOption) {
+            if (!/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(colorOption)) {
+                interaction.reply('Invalid color format. Please provide a valid hex color (e.g., #FF0000).');
+                return;
+            }
+            color = parseInt(colorOption.slice(1), 16);
+        } else {
+            // Default color if not provided
+            color = 0x206694;
+        }
+
         const embed = new EmbedBuilder()
         .setTitle('News!')
         .setDescription(`${mentionEveryoneString} ${userDesc.toString()}.`)
-        .setColor(0x206694)
+        .setColor(color)
         .setThumbnail(channelAvatar)
         .setFooter({text: currentUser, iconURL: currentUserImage})
         .setTimestamp()
@@ -115,6 +142,30 @@ client.on("interactionCreate", (interaction) =>{
                 });
         }
         
+    }
+
+    if(interaction.commandName === 'say'){
+        const mentionChannel = interaction.options.getChannel('set_channel');
+        const userMessage = interaction.options.getString('say_something');
+
+        if (mentionChannel) {
+            mentionChannel.send(userMessage)
+                .then(() => {
+                    // Respond to the interaction acknowledging that the message was sent
+                    interaction.reply('Message sent successfully!');
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    // Respond to the interaction with an error message
+                    interaction.reply('There was an error sending the message.');
+                });
+        } else {
+            interaction.reply(userMessage)
+                .catch(error => {
+                    console.error('Error replying with message:', error);
+                    // Handle the error appropriately, such as logging it
+                });
+        }
     }
 })
 
