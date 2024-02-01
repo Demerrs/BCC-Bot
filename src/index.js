@@ -6,10 +6,15 @@ const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits
 let monitoredChannels = [];
 const monitoredChannelsFilePath = process.env.MONITOR_CHANNELS;
 
+let logFile = [];
+const logChannelFilePath = process.env.LOG_CHANNEL;
+
 
 client.on(Events.ClientReady, async (x) => {
     client.user.setActivity("I'm soulless");
-    monitoredChannels = loadMonitoredChannelsFromFile(monitoredChannelsFilePath);
+    monitoredChannels = loadChannelsFromFile(monitoredChannelsFilePath);
+    logFile = loadChannelsFromFile(logChannelFilePath);
+    console.log(logFile);
 
     // Try catch to remove old unexisted commands
     try {
@@ -222,7 +227,7 @@ client.on("interactionCreate", async (interaction) =>{
             interaction.reply(`Channel ${channelToAdd.name} added to monitored channels.`);
 
             // Save monitored channels to file
-            saveMonitoredChannelsToFile(monitoredChannelsFilePath, monitoredChannels);
+            saveChannelsToFile(monitoredChannelsFilePath, monitoredChannels);
         } else {
             interaction.reply('Please specify a valid channel to add.');
         }
@@ -231,11 +236,14 @@ client.on("interactionCreate", async (interaction) =>{
     if (interaction.commandName === 'logs') {
         const channelToAdd = interaction.options.getChannel('set_channel');
         if (channelToAdd) {
-            monitoredChannels.push(channelToAdd.id);
+            if(logFile.length > 0){
+                logFile = [];
+            }
+            logFile.push(channelToAdd.id);
             interaction.reply(`Channel ${channelToAdd.name} added to monitored channels.`);
 
             // Save monitored channels to file
-            saveMonitoredChannelsToFile(monitoredChannelsFilePath, monitoredChannels);
+            saveChannelsToFile(logChannelFilePath, logFile);
         } else {
             interaction.reply('Please specify a valid channel to add.');
         }
@@ -260,7 +268,7 @@ const uncensoredWordsFilePath = process.env.CENSURED_WORDS; // Replace with your
 // Load uncensored words from the file
 const uncensoredWords = loadUncensoredWordsFromFile(uncensoredWordsFilePath);
 
-function loadMonitoredChannelsFromFile(filePath) {
+function loadChannelsFromFile(filePath) {
     try {
         // Read the file content if it exists
         const fileContent = fs.readFileSync(filePath, 'utf8');
@@ -284,7 +292,7 @@ function loadMonitoredChannelsFromFile(filePath) {
 
 
 // Function to save monitored channels to file
-function saveMonitoredChannelsToFile(filePath, channels) {
+function saveChannelsToFile(filePath, channels) {
     try {
         const channelsString = channels.join('\n');
         fs.writeFileSync(filePath, channelsString, 'utf8');
@@ -302,10 +310,15 @@ client.on("messageCreate", async (message) => {
         return;
     }
 
-    const specificChannelId = '1201628228041851094'; // Replace with your specific channel ID
-    const logChannelId = '1202622053077885009';
     if (!monitoredChannels.includes(message.channel.id)) {
         return; // Ignore messages from other channels
+    }
+
+    let logChannelId;
+    if(logFile.length > 0){
+        logChannelId = logFile[0];
+    }else{
+        logChannel = '';
     }
 
     // Check for uncensored words
@@ -315,9 +328,10 @@ client.on("messageCreate", async (message) => {
         if (lowercaseContent.includes(word.toLowerCase())) {
             try {
                 // Perform action when uncensored word is found, e.g., delete the message
-
-                const logChannel = await client.channels.fetch(logChannelId);
+                if(logChannelId.length > 0){
+                    const logChannel = await client.channels.fetch(logChannelId);
                 await logChannel.send(`---------------------------------\nMessage deleted: ${message.content}\nAuthor: ${message.author.tag}\nChannel: ${message.channel.name}\n---------------------------------`);
+                }
 
                 await message.reply('Please refrain from using uncensored words.');
                 console.log(`Message deleted: ${message.content}`);
