@@ -247,19 +247,7 @@ client.on("interactionCreate", async (interaction) =>{
             interaction.reply('Please specify a valid channel to add.');
         }
     }
-})
-
-function loadUncensoredWordsFromFile(filePath) {
-    try {
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        // Assuming each line in the file contains one uncensored word
-        const uncensoredWords = fileContent.split('\n').map(word => word.trim());
-        return uncensoredWords;
-    } catch (error) {
-        console.error('Error reading uncensored words file:', error);
-        return [];
-    }
-}
+});
 
 // Specify the path to the file containing uncensored words
 const uncensoredWordsFilePath = process.env.CENSURED_WORDS; // Replace with your file path
@@ -267,41 +255,6 @@ const uncensoredWordsFilePath = process.env.CENSURED_WORDS; // Replace with your
 // Load uncensored words from the file
 const uncensoredWords = loadUncensoredWordsFromFile(uncensoredWordsFilePath);
 
-function loadChannelsFromFile(filePath) {
-    try {
-        // Read the file content if it exists
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-
-        // Assuming each line in the file contains one channel ID
-        const channels = fileContent.split('\n').map(channel => channel.trim());
-        return channels;
-    } catch (error) {
-        // Check if the error is due to the file not existing
-        if (error.code === 'ENOENT') {
-            // If the file doesn't exist, create an empty file
-            fs.writeFileSync(filePath, '', 'utf8');
-            return [];
-        } else {
-            // If there's another error, log it and return an empty array
-            console.error('Error reading monitored channels file:', error);
-            return [];
-        } 
-    }
-}
-
-
-// Function to save monitored channels to file
-function saveChannelsToFile(filePath, channels) {
-    try {
-        const channelsString = channels.join('\n');
-        fs.writeFileSync(filePath, channelsString, 'utf8');
-    } catch (error) {
-        console.error('Error saving monitored channels to file:', error);
-    }
-}
-
-
-// ...
 
 client.on("messageCreate", async (message) => {
     // Check if the message is in a specific channel
@@ -346,7 +299,49 @@ client.on("messageCreate", async (message) => {
     }
 });
 
-// ...
+function loadUncensoredWordsFromFile(filePath) {
+    try {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        // Assuming each line in the file contains one uncensored word
+        const uncensoredWords = fileContent.split('\n').map(word => word.trim());
+        return uncensoredWords;
+    } catch (error) {
+        console.error('Error reading uncensored words file:', error);
+        return [];
+    }
+}
 
+function loadChannelsFromFile(filePath) {
+    try {
+        // Read the file content if it exists
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+
+        // Assuming each line in the file contains one channel ID
+        const channels = fileContent.split('\n').map(channel => channel.trim());
+        return channels;
+    } catch (error) {
+        // Check if the error is due to the file not existing
+        if (error.code === 'ENOENT') {
+            // If the file doesn't exist, create an empty file
+            fs.writeFileSync(filePath, '', 'utf8');
+            return [];
+        } else {
+            // If there's another error, log it and return an empty array
+            console.error('Error reading monitored channels file:', error);
+            return [];
+        } 
+    }
+}
+
+
+// Function to save monitored channels to file
+function saveChannelsToFile(filePath, channels) {
+    try {
+        const channelsString = channels.join('\n');
+        fs.writeFileSync(filePath, channelsString, 'utf8');
+    } catch (error) {
+        console.error('Error saving monitored channels to file:', error);
+    }
+}
 
 client.login(process.env.TOKEN);
