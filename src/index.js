@@ -14,7 +14,6 @@ client.on(Events.ClientReady, async (x) => {
     client.user.setActivity("I'm soulless");
     monitoredChannels = loadChannelsFromFile(monitoredChannelsFilePath);
     logFile = loadChannelsFromFile(logChannelFilePath);
-    console.log(logFile);
 
     // Try catch to remove old unexisted commands
     try {
