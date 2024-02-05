@@ -89,7 +89,7 @@ module.exports = {
             .setColor(0x0099FF)
             .setTitle(postTitleValue)
             .setDescription(postContentValue)
-            .setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 256 }));
+            .setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 128 }));
 
             
             if(postImageValue && isValidHttpUrl(postImageValue)){
