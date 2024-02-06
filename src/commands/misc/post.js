@@ -1,4 +1,4 @@
-const { Client, Interaction, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder } = require('discord.js');
+const { Client, Interaction, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const Posts = require('../../models/Posts');
 
 function isValidHttpUrl(string) {
@@ -116,4 +116,6 @@ module.exports = {
 
     name: 'post',
     description: 'Create a post in specific channel',
+    permissionsRequired: [PermissionFlagsBits.ManageChannels],
+    botPermissions: [PermissionFlagsBits.ManageChannels],
 }
