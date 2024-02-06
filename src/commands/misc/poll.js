@@ -16,14 +16,11 @@ module.exports = {
      */
     callback: async (client, interaction) => {
 
-        await interaction.deferReply();
-
         if (!interaction.inGuild()) {
             interaction.reply('You can only run this command inside a server.');
             return;
         }
 
-        const {channel} = await interaction;
         const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
         let pollEmbed = new EmbedBuilder();
         pollEmbed.setTitle(`${interaction.options.get('question').value}`);
@@ -47,7 +44,7 @@ module.exports = {
         const pollChannelId = await Poll.findOne({ guildId: interaction.guildId });
 
         if(!pollChannelId || !pollChannelId.channelId){
-            interaction.editReply("Can't send post. No post channel configure for this server. Set it up by `/post-configure`");
+            interaction.reply({content: "Can't send post. No post channel configure for this server. Set it up by `/post-configure`", ephemeral: true});
             return;
         }
 
@@ -60,7 +57,7 @@ module.exports = {
         }
         
 
-        await interaction.editReply({ content: "Your poll has been sent.", ephemeral: true });
+        await interaction.reply({ content: "Your poll has been sent.", ephemeral: true });
 
 
     },
