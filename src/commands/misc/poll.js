@@ -44,7 +44,14 @@ module.exports = {
             });
         }
 
-        const pollMess = await channel.send({ embeds: [pollEmbed] });
+        const pollChannelId = await Poll.findOne({ guildId: interaction.guildId });
+
+        if(!pollChannelId || !pollChannelId.channelId){
+            interaction.editReply("Can't send post. No post channel configure for this server. Set it up by `/post-configure`");
+            return;
+        }
+
+        const pollMess = await client.channels.cache.get(pollChannelId.channelId).send({ embeds: [pollEmbed] });
 
         for(let i = 1; i <= optionsNum.length; i++){
             let emoji = emojis[i - 1];
