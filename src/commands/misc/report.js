@@ -106,12 +106,12 @@ module.exports = {
 
             const response = await client.channels.cache.get(reportChannelId.channelId).send({ embeds: [reportEmbed], components: [row] });
 
-            //const user = await client.users.fetch(interaction.user.id);
-            //user.send(`﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌\n**Your report "${reportTitleValue}"\nhas been submitted successfully.**\n\nPlease wait until your report will took someone.\nThank you for your feedback!❤\n﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌`);
+            const user = await client.users.fetch(interaction.user.id);
+            user.send(`﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌\n**Your report "${reportTitleValue}"\nhas been submitted successfully.**\n\nPlease wait until your report will took someone.\nThank you for your feedback!❤\n﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌`);
 
             modalInteraction.reply({content: `Report sent successfully.`, ephemeral: true});
 
-            /*cooldown.endsAt = Date.now() + 3600_000; // 3600_000 = 1h
+            /*cooldown.endsAt = Date.now() + 1200_000; // 1200_000 = 20m
             await cooldown.save();*/
         })
         .catch((e) => {
@@ -121,5 +121,4 @@ module.exports = {
 
     name: 'report',
     description: 'Report a problem or exploiter.',
-    devOnly: true,
 }
