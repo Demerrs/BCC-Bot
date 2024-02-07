@@ -43,7 +43,7 @@ module.exports = async (client, interaction) => {
 
             const userToMessage = await client.users.fetch(interaction.message.embeds[0].fields[1].value);
 
-            await userToMessage.send(`**Your report is taken by: ${interaction.user.displayName}.**\nIf additional information is needed, ${interaction.user.displayName} will write to you.`);
+            await userToMessage.send(`**Your report is taken by: ${interaction.user.displayName}. 📌**\nIf additional information is needed, ${interaction.user.displayName} will write to you.`);
 
             await interaction.reply({ content: `You took the report.`, ephemeral: true });
             return;
@@ -78,7 +78,7 @@ module.exports = async (client, interaction) => {
 
             const userToMessage = await client.users.fetch(interaction.message.embeds[0].fields[1].value);
 
-            await userToMessage.send(`**Your report "${interaction.message.embeds[0].title}" was declined.**\nReason: ${reportContentValue}`);
+            await userToMessage.send(`**Your report "${interaction.message.embeds[0].title}" was declined. ⚠️**\nReason: ${reportContentValue}`);
 
             await modalInteraction.reply({ content: `Report declined successfully.`, ephemeral: true });
 
@@ -113,7 +113,7 @@ module.exports = async (client, interaction) => {
 
             const userToMessage = await client.users.fetch(interaction.message.embeds[0].fields[1].value);
 
-            await userToMessage.send(`**Your report "${interaction.message.embeds[0].title}" was done.**\nConclusion: ${reportContentValue}`);
+            await userToMessage.send(`**Your report "${interaction.message.embeds[0].title}" was done. ✅**\nConclusion: ${reportContentValue}`);
 
             await modalInteraction.reply({ content: `Report finished successfully.`, ephemeral: true });
 
