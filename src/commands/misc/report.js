@@ -37,9 +37,9 @@ module.exports = {
             return;
         }
 
-        //let cooldown = await Cooldowns.findOne({ commandName, userId, guildId });
+        let cooldown = await Cooldowns.findOne({ commandName, userId, guildId });
 
-        /*if(cooldown && Date.now() < cooldown.endsAt){
+        if(cooldown && Date.now() < cooldown.endsAt){
             const { default: prettyMs } = await import('pretty-ms');
       
             await interaction.reply({ content: `I'm sorry. You can't use this command. It's now on cooldown, time left: ${prettyMs(cooldown.endsAt - Date.now())}`, ephemeral: true});
@@ -48,7 +48,7 @@ module.exports = {
       
         if(!cooldown){
             cooldown = new Cooldowns({ commandName, userId, guildId });
-        }*/
+        }
 
         const modal = new ModalBuilder({
             customId: `reportModal-${interaction.user.id}`,
@@ -91,7 +91,10 @@ module.exports = {
         //wait for modal to be submited
         const filter = (interaction) => interaction.customId ===  `reportModal-${interaction.user.id}`;
 
-        interaction.awaitModalSubmit({ filter, time: 120_000 })
+        cooldown.endsAt = Date.now() + 1200_000; // 1200_000 = 20m
+        await cooldown.save();
+
+        interaction.awaitModalSubmit({ filter, time: 600_000 })
         .then(async (modalInteraction) => {
             const reportTitleValue = modalInteraction.fields.getTextInputValue('reportTitle');
             const reportContentValue = modalInteraction.fields.getTextInputValue('reportContent');
@@ -110,9 +113,6 @@ module.exports = {
             user.send(`﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌\n**Your report "${reportTitleValue}"\nhas been submitted successfully.**\n\nPlease wait until your report will took someone.\nThank you for your feedback!❤\n﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌`);
 
             modalInteraction.reply({content: `Report sent successfully.`, ephemeral: true});
-
-            /*cooldown.endsAt = Date.now() + 1200_000; // 1200_000 = 20m
-            await cooldown.save();*/
         })
         .catch((e) => {
             console.log(`Failed to submit modal: ${e}`);
