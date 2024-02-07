@@ -81,8 +81,10 @@ module.exports = {
         rank.setRequiredXP(calculateLevelXp(fetchedLevel.level));
         rank.setLevel(fetchedLevel.level);
         rank.setRank(currentRank);
-        if(targetUserObj.presence.status){
+        if(targetUserObj.presence){
           rank.setStatus(targetUserObj.presence.status);
+        }else{
+          rank.setStatus('offline');
         }
         
       const data = await rank.build({
