@@ -83,9 +83,11 @@ module.exports = {
 
             const emojis = ["👍", "👎"];
 
+            let reportToSend = `**Author:** ${interaction.user.displayName}\n**Id:** ${interaction.user.id}\n\n**Report content:**\n` + reportContentValue;
+
             const reportEmbed = new EmbedBuilder()
             .setTitle(reportTitleValue)
-            .setDescription(reportContentValue)
+            .setDescription(reportToSend)
             .setColor("DarkRed");
 
             const reportMess = await client.channels.cache.get(reportChannelId.channelId).send({ embeds: [reportEmbed] });
@@ -95,6 +97,9 @@ module.exports = {
     
                 await reportMess.react(emoji);
             }
+
+            const user = await client.users.fetch(interaction.user.id);
+            user.send(`﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌\n**Your report "${reportTitleValue}"\nhas been submitted successfully.**\n\nIf additional information is needed, we will write to you.\nThank you for your feedback!❤\n﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌`);
 
             modalInteraction.reply({content: `Report sent successfully.`, ephemeral: true});
 
