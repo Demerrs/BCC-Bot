@@ -24,6 +24,13 @@ module.exports = {
             return;
         }
 
+        const suggestionsChannelId = await Suggestions.findOne({ guildId: interaction.guildId });
+
+        if(!suggestionsChannelId || !suggestionsChannelId.channelId){
+            interaction.reply({content: "Can't create suggestion. No suggestion channel configure for this server. Ask administration to set it up.", ephemeral: true});
+            return;
+        }
+
         const commandName = 'suggestion';
         const userId = interaction.user.id;
         const guildId = interaction.guild.id;
@@ -69,17 +76,10 @@ module.exports = {
         //wait for modal to be submited
         const filter = (interaction) => interaction.customId ===  `suggestionModal-${interaction.user.id}`;
 
-        const suggestionsChannelId = await Suggestions.findOne({ guildId: interaction.guildId });
-
         interaction.awaitModalSubmit({ filter, time: 120_000 })
         .then(async (modalInteraction) => {
             const suggestionTitleValue = modalInteraction.fields.getTextInputValue('suggestionTitle');
             const suggestionContentValue = modalInteraction.fields.getTextInputValue('suggestionContent');
-
-            if(!suggestionsChannelId || !suggestionsChannelId.channelId){
-                interaction.reply({content: "Can't send suggestion. No post channel configure for this server. Set it up by `/post-configure`", ephemeral: true});
-                return;
-            }
 
             const emojis = ["👍", "👎"];
 

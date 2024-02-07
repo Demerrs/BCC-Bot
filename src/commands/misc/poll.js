@@ -21,6 +21,13 @@ module.exports = {
             return;
         }
 
+        const pollChannelId = await Poll.findOne({ guildId: interaction.guildId });
+
+        if(!pollChannelId || !pollChannelId.channelId){
+            interaction.reply({content: "Can't send poll. No poll channel configure for this server. Set it up by `/poll-configure`", ephemeral: true});
+            return;
+        }
+
         const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
         let pollEmbed = new EmbedBuilder();
         pollEmbed.setTitle(`${interaction.options.get('question').value}`);
@@ -39,13 +46,6 @@ module.exports = {
             pollEmbed.addFields({
                 name: `${emoji} ${option}`, value: '  '
             });
-        }
-
-        const pollChannelId = await Poll.findOne({ guildId: interaction.guildId });
-
-        if(!pollChannelId || !pollChannelId.channelId){
-            interaction.reply({content: "Can't send post. No post channel configure for this server. Set it up by `/post-configure`", ephemeral: true});
-            return;
         }
 
         const pollMess = await client.channels.cache.get(pollChannelId.channelId).send({ embeds: [pollEmbed] });

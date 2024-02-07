@@ -21,6 +21,15 @@ module.exports = {
      * @param {Interaction} interaction 
      */
     callback: async (client, interaction) => {
+
+        const postChannelId = await Posts.findOne({ guildId: interaction.guildId });
+
+        if(!postChannelId || !postChannelId.channelId){
+            interaction.editReply("Can't send post. No post channel configure for this server. Set it up by `/post-configure`");
+            return;
+        }
+
+
         const modal = new ModalBuilder({
             customId: `postModal-${interaction.user.id}`,
             title: 'POST',
@@ -70,18 +79,12 @@ module.exports = {
         //wait for modal to be submited
         const filter = (interaction) => interaction.customId ===  `postModal-${interaction.user.id}`;
 
-        const postChannelId = await Posts.findOne({ guildId: interaction.guildId });
 
         interaction.awaitModalSubmit({ filter, time: 120_000 })
         .then((modalInteraction) => {
             const postTitleValue = modalInteraction.fields.getTextInputValue('postTitle');
             const postContentValue = modalInteraction.fields.getTextInputValue('postContent');
             const postImageValue = modalInteraction.fields.getTextInputValue('postImages');
-
-            if(!postChannelId || !postChannelId.channelId){
-                interaction.editReply("Can't send post. No post channel configure for this server. Set it up by `/post-configure`");
-                return;
-            }
 
             modalInteraction.reply({content: `Message sent successfully.`, ephemeral: true});
 
