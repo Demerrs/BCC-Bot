@@ -81,7 +81,10 @@ module.exports = {
         rank.setRequiredXP(calculateLevelXp(fetchedLevel.level));
         rank.setLevel(fetchedLevel.level);
         rank.setRank(currentRank);
-        rank.setStatus(targetUserObj.presence.status);
+        if(targetUserObj.presence.status){
+          rank.setStatus(targetUserObj.presence.status);
+        }
+        
       const data = await rank.build({
 
         format: 'png'
