@@ -6,6 +6,8 @@ const {
     ModalBuilder, 
     TextInputBuilder, 
     TextInputStyle,
+    ButtonBuilder, 
+    ButtonStyle,
 } = require('discord.js');
 const Reports = require('../../models/Reports');
 const Cooldowns = require('../../models/Cooldowns');
@@ -66,6 +68,19 @@ module.exports = {
             style: TextInputStyle.Paragraph
         });
 
+        const confirm = new ButtonBuilder()
+        .setCustomId('takeReport')
+        .setLabel('Take report')
+        .setStyle(ButtonStyle.Primary);
+
+        const cancel = new ButtonBuilder()
+        .setCustomId('abortReport')
+        .setLabel('Abort report')
+        .setStyle(ButtonStyle.Danger);
+
+        const row = new ActionRowBuilder()
+		.addComponents(confirm, cancel);
+
         const firstActionRow = new ActionRowBuilder().addComponents(reportTitle);
         const secondActionRow = new ActionRowBuilder().addComponents(reportContent);
 
@@ -81,8 +96,6 @@ module.exports = {
             const reportTitleValue = modalInteraction.fields.getTextInputValue('reportTitle');
             const reportContentValue = modalInteraction.fields.getTextInputValue('reportContent');
 
-            const emojis = ["👍", "👎"];
-
             let reportToSend = `**Author:** ${interaction.user.displayName}\n**Id:** ${interaction.user.id}\n\n**Report content:**\n` + reportContentValue;
 
             const reportEmbed = new EmbedBuilder()
@@ -90,13 +103,7 @@ module.exports = {
             .setDescription(reportToSend)
             .setColor("DarkRed");
 
-            const reportMess = await client.channels.cache.get(reportChannelId.channelId).send({ embeds: [reportEmbed] });
-
-            for(let i = 1; i <= 2; i++){
-                let emoji = emojis[i - 1];
-    
-                await reportMess.react(emoji);
-            }
+            const response = await client.channels.cache.get(reportChannelId.channelId).send({ embeds: [reportEmbed], components: [row] });
 
             const user = await client.users.fetch(interaction.user.id);
             user.send(`﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌\n**Your report "${reportTitleValue}"\nhas been submitted successfully.**\n\nIf additional information is needed, we will write to you.\nThank you for your feedback!❤\n﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌`);
