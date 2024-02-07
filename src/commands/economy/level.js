@@ -7,6 +7,7 @@ const {
 const { Font, RankCardBuilder } = require('canvacord');
 const calculateLevelXp = require('../../utils/calculateLevelXp');
 const Level = require('../../models/Level');
+const Cooldowns = require('../../models/Cooldowns');
 
 module.exports = {
   /**
@@ -21,6 +22,23 @@ module.exports = {
     }
 
     await interaction.deferReply();
+
+    const commandName = 'level';
+    const userId = interaction.user.id;
+    const guildId = interaction.guild.id;
+
+    let cooldown = await Cooldowns.findOne({ commandName, userId, guildId });
+
+    if(cooldown && Date.now() < cooldown.endsAt){
+      const { default: prettyMs } = await import('pretty-ms');
+
+      await interaction.editReply(`I'm sorry. You can't use this command. It's now on cooldown, time left: ${prettyMs(cooldown.endsAt - Date.now())}`);
+      return;
+    }
+
+    if(!cooldown){
+      cooldown = new Cooldowns({ commandName, userId, guildId });
+    }
 
     const mentionedUserId = interaction.options.get('target-user')?.value;
     const targetUserId = mentionedUserId || interaction.member.id;
@@ -71,6 +89,9 @@ module.exports = {
       });
     const attachment = new AttachmentBuilder(data);
     interaction.editReply({ files: [attachment] });
+    
+    cooldown.endsAt = Date.now() + 300_000; // 3600_000 = 1h
+    await cooldown.save();
   },
 
   name: 'level',

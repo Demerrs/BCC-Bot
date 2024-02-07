@@ -8,6 +8,7 @@ const {
     TextInputStyle,
 } = require('discord.js');
 const Suggestions = require('../../models/Suggestions');
+const Cooldowns = require('../../models/Cooldowns');
 
 module.exports = {
 
@@ -21,6 +22,23 @@ module.exports = {
         if (!interaction.inGuild()) {
             interaction.reply('You can only run this command inside a server.');
             return;
+        }
+
+        const commandName = 'suggestion';
+        const userId = interaction.user.id;
+        const guildId = interaction.guild.id;
+
+        let cooldown = await Cooldowns.findOne({ commandName, userId, guildId });
+
+        if(cooldown && Date.now() < cooldown.endsAt){
+            const { default: prettyMs } = await import('pretty-ms');
+      
+            await interaction.reply({ content: `I'm sorry. You can't use this command. It's now on cooldown, time left: ${prettyMs(cooldown.endsAt - Date.now())}`, ephemeral: true});
+            return;
+        }
+      
+        if(!cooldown){
+            cooldown = new Cooldowns({ commandName, userId, guildId });
         }
 
         const modal = new ModalBuilder({
@@ -79,6 +97,9 @@ module.exports = {
             }
 
             modalInteraction.reply({content: `Suggestion sent successfully.`, ephemeral: true});
+
+            cooldown.endsAt = Date.now() + 3600_000; // 3600_000 = 1h
+            await cooldown.save();
         })
         .catch((e) => {
             console.log(`Failed to submit modal: ${e}`);
