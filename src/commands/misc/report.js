@@ -96,17 +96,18 @@ module.exports = {
             const reportTitleValue = modalInteraction.fields.getTextInputValue('reportTitle');
             const reportContentValue = modalInteraction.fields.getTextInputValue('reportContent');
 
-            let reportToSend = `**Author:** ${interaction.user.displayName}\n**Id:** ${interaction.user.id}\n\n**Report content:**\n` + reportContentValue;
-
             const reportEmbed = new EmbedBuilder()
             .setTitle(reportTitleValue)
-            .setDescription(reportToSend)
+            .setDescription(reportContentValue)
             .setColor("DarkRed");
+            
+            reportEmbed.addFields({ name: 'Reporter Name: ', value: interaction.user.displayName });
+            reportEmbed.addFields({ name: 'Reporter Id: ', value: interaction.user.id });
 
             const response = await client.channels.cache.get(reportChannelId.channelId).send({ embeds: [reportEmbed], components: [row] });
 
-            const user = await client.users.fetch(interaction.user.id);
-            user.send(`﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌\n**Your report "${reportTitleValue}"\nhas been submitted successfully.**\n\nIf additional information is needed, we will write to you.\nThank you for your feedback!❤\n﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌`);
+            //const user = await client.users.fetch(interaction.user.id);
+            //user.send(`﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌\n**Your report "${reportTitleValue}"\nhas been submitted successfully.**\n\nPlease wait until your report will took someone.\nThank you for your feedback!❤\n﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌`);
 
             modalInteraction.reply({content: `Report sent successfully.`, ephemeral: true});
 
