@@ -76,7 +76,10 @@ module.exports = {
         //wait for modal to be submited
         const filter = (interaction) => interaction.customId ===  `suggestionModal-${interaction.user.id}`;
 
-        interaction.awaitModalSubmit({ filter, time: 120_000 })
+        cooldown.endsAt = Date.now() + 3600_000; // 3600_000 = 1h
+        await cooldown.save();
+
+        interaction.awaitModalSubmit({ filter, time: 600_000 })
         .then(async (modalInteraction) => {
             const suggestionTitleValue = modalInteraction.fields.getTextInputValue('suggestionTitle');
             const suggestionContentValue = modalInteraction.fields.getTextInputValue('suggestionContent');
@@ -97,9 +100,6 @@ module.exports = {
             }
 
             modalInteraction.reply({content: `Suggestion sent successfully.`, ephemeral: true});
-
-            cooldown.endsAt = Date.now() + 3600_000; // 3600_000 = 1h
-            await cooldown.save();
         })
         .catch((e) => {
             console.log(`Failed to submit modal: ${e}`);
